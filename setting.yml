@@ -1,0 +1,72 @@
+- hosts: local
+  vars:
+    document_root: /home/html/
+    project_name: mysite
+  tasks:
+    - name: set language
+      shell: LANG=ja_JP.utf8
+
+    - name: yum install
+      become: true
+      yum: name={{ item }} state=present
+      with_items:
+      - nginx
+      - git
+      - python-devel
+#      - gcc
+#      - zlib-devel
+#      - bzip2
+#      - bzip2-devel
+#      - readline
+#      - readline-devel
+#      - sqlite
+#      - sqlite-devel
+#      - openssl
+#      - openssl-devel
+
+    - name: install pyenv
+      shell: |
+        git clone https://github.com/yyuu/pyenv.git ~/.pyenv
+        git clone https://github.com/yyuu/pyenv-virtualenv.git ~/.pyenv/plugins/pyenv-virtualenv
+        echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bash_profile
+        echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bash_profile
+        echo 'export PYTHONPATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bash_profile
+        echo 'eval "$(pyenv init -)"' >> ~/.bash_profile
+        echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bash_profile
+        source ~/.bash_profile
+        pyenv install 3.6.0
+        pyenv global 3.6.0
+
+    - name: install pip
+      become: true
+      shell: easy_install pip
+    
+    - name: install virtualenv
+      become: true
+      shell: pip install virtualenv
+ 
+    - name: create documentroot directory
+      become: true
+      file: path={{ document_root }} state=directory owner=nginx group=nginx mode=0755
+
+    - name: set python virtualenv
+      become: true
+      shell: |
+        virtualenv {{ document_root }}
+        cd {{ document_root }}
+        source bin/activate
+
+    - name: install django
+      shell: pip install django
+
+    - name: create django project
+      shell: |
+        cd {{ document_root + project_name}}
+#        django-admin startproject mysite 
+
+    - name: run django server
+      shell: |
+        cd {{ document_root + project_name}}
+#        sudo python manage.py runserver
+
+
