@@ -1,4 +1,5 @@
 - hosts: local
+  connection: local
   vars:
     document_root: /home/html/
     project_name: mysite
